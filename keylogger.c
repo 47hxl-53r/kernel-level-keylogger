@@ -63,7 +63,7 @@ static const char *keymap[128] = {
     [54] = "RIGHTSHIFT",
     [56] = "LEFTALT",
     [57] = "SPACE",
-    [58] = "CAPSLOCK"
+    [58] = "CAPSLOCK"  // Will be adding more keys in the future
 };
 
 static int last_pressed_key = -1;

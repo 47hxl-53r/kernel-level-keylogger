@@ -5,7 +5,7 @@
 #include <linux/timekeeping.h>
 
 #define LICENSE "GPL"
-#define AUTHOR "1day & isPique"
+#define AUTHOR "1day"
 #define DESCRIPTION "A simple kernel-level keylogger for Linux operating systems"
 #define VERSION "0.2"
 
